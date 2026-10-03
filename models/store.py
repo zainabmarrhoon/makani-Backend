@@ -17,3 +17,4 @@ class StoreModel(BaseModel):
     status = Column(String, default="draft", nullable=False)
 
     owner = relationship("UserModel", back_populates="stores")
+    products = relationship("ProductModel", back_populates="store")
