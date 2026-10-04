@@ -1,21 +1,52 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 
-from database import Base
+from .base import BaseModel
 
 
-class Notification(Base):
+class NotificationModel(BaseModel):
+
     __tablename__ = "notifications"
 
-    id = Column(Integer, primary_key=True, index=True)
-    store_id = Column(Integer, ForeignKey("stores.id"), nullable=False)
-    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    store_id = Column(
+        ForeignKey("stores.id"),
+        nullable=False
+    )
 
-    message = Column(String, nullable=False)
-    type = Column(String, nullable=False)
-    is_read = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    order_id = Column(
+        ForeignKey("orders.id"),
+        nullable=False
+    )
 
-    store = relationship("Store", back_populates="notifications")
-    order = relationship("Order", back_populates="notifications")
+    message = Column(
+        String,
+        nullable=False
+    )
+
+    type = Column(
+        String,
+        nullable=False
+    )
+
+    is_read = Column(
+        Boolean,
+        default=False,
+        nullable=False
+    )
+
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False
+    )
+
+    store = relationship(
+        "StoreModel",
+        back_populates="notifications"
+    )
+
+    order = relationship(
+        "OrderModel",
+        back_populates="notifications"
+    )

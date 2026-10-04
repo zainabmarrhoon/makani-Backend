@@ -1,21 +1,13 @@
-from pydantic import BaseModel
 from datetime import datetime
+from pydantic import BaseModel
 
 
-class NotificationBase(BaseModel):
-    message: str
-    type: str
-
-
-class NotificationCreate(NotificationBase):
-    store_id: int
-    order_id: int
-
-
-class NotificationResponse(NotificationBase):
+class NotificationResponse(BaseModel):
     id: int
     store_id: int
     order_id: int
+    message: str
+    type: str
     is_read: bool
     created_at: datetime
 
