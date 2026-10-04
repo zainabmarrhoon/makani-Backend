@@ -1,0 +1,99 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from models.order import OrderModel
+from models.store import StoreModel
+from serializers.order import OrderCreateSchema, OrderUpdateSchema, OrderSchema
+from database import get_db
+from dependencies.get_current_user import get_current_user
+
+router = APIRouter()
+
+
+@router.post("/stores/{store_id}/orders", response_model=OrderSchema, status_code=201)
+def create_order(
+    store_id: int,
+    order: OrderCreateSchema,
+    db: Session = Depends(get_db)
+):
+    store = db.query(StoreModel).filter(
+        StoreModel.id == store_id
+    ).first()
+
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    new_order = OrderModel(
+        store_id=store_id,
+        customer_name=order.customer_name,
+        customer_phone=order.customer_phone,
+        customer_address=order.customer_address,
+        total_amount=order.total_amount,
+        payment_method=order.payment_method,
+        payment_proof=order.payment_proof
+    )
+
+    db.add(new_order)
+    db.commit()
+    db.refresh(new_order)
+
+    return new_order
+
+
+@router.get("/stores/{store_id}/orders", response_model=list[OrderSchema])
+def get_store_orders(
+    store_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    store = db.query(StoreModel).filter(
+        StoreModel.id == store_id,
+        StoreModel.owner_id == current_user.id
+    ).first()
+
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    orders = db.query(OrderModel).filter(
+        OrderModel.store_id == store_id
+    ).all()
+
+    return orders
+
+
+@router.get("/orders/{order_id}", response_model=OrderSchema)
+def get_order(
+    order_id: int,
+    db: Session = Depends(get_db)
+):
+    order = db.query(OrderModel).filter(
+        OrderModel.id == order_id
+    ).first()
+
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    return order
+
+
+@router.put("/orders/{order_id}/status", response_model=OrderSchema)
+def update_order_status(
+    order_id: int,
+    order: OrderUpdateSchema,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    db_order = db.query(OrderModel).join(StoreModel).filter(
+        OrderModel.id == order_id,
+        StoreModel.owner_id == current_user.id
+    ).first()
+
+    if not db_order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    db_order.status = order.status
+
+    db.commit()
+    db.refresh(db_order)
+
+    return db_order

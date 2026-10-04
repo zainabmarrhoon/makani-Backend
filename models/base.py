@@ -1,8 +1,11 @@
-from .base import BaseModel
+from sqlalchemy import Column, DateTime, Integer, func
+from sqlalchemy.ext.declarative import declarative_base
 
-# Import submodules so their classes register with the mapper registry.
-# Import modules, not classes, to avoid circular imports between request/property/notification.
-from . import user
-# add future models here as needed
+Base = declarative_base()
 
-__all__ = ["BaseModel"]
+class BaseModel(Base):
+    __abstract__ = True
+
+    id = Column(Integer, primary_key=True, index=True)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
