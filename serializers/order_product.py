@@ -1,20 +1,19 @@
-from pydantic import BaseModel
 from decimal import Decimal
+from pydantic import BaseModel
 
 
-class OrderProductBase(BaseModel):
+class OrderProductCreate(BaseModel):
     product_id: int
     quantity: int
     price: Decimal
 
 
-class OrderProductCreate(OrderProductBase):
-    pass
-
-
-class OrderProductResponse(OrderProductBase):
+class OrderProductResponse(BaseModel):
     id: int
     order_id: int
+    product_id: int
+    quantity: int
+    price: Decimal
 
     class Config:
         from_attributes = True
