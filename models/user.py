@@ -16,7 +16,7 @@ class UserModel(BaseModel):
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
 
-    stores = relationship("Store", back_populates="owner")
+    stores = relationship("StoreModel", back_populates="owner")
 
     def set_password(self, plain_txt_password: str):
         self.password = pwd_context.hash(plain_txt_password)
