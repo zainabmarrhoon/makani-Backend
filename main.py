@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from controllers.order_products import router as order_products_router
 from controllers.auth import router as auth_router
 from controllers.products import router as products_router
 from controllers.stores import router as stores_router
@@ -26,6 +26,7 @@ app.include_router(stores_router, tags=["Stores"])
 app.include_router(orders_router, tags=["Orders"])
 app.include_router(store_router)
 app.include_router(notification_router)
+app.include_router(order_products_router, tags=["Order Products"])
 
 @app.get("/")
 def root():

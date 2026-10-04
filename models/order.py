@@ -18,3 +18,6 @@ class OrderModel(BaseModel):
 
     store = relationship("StoreModel", back_populates="orders")
     order_products = relationship("OrderProductModel", back_populates="order")
+    notifications = relationship(
+    "NotificationModel",
+    back_populates="order")
