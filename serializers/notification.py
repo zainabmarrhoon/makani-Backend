@@ -2,7 +2,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
-class NotificationResponse(BaseModel):
+class NotificationSchema(BaseModel):
     id: int
     store_id: int
     order_id: int

@@ -19,3 +19,6 @@ class StoreModel(BaseModel):
     owner = relationship("UserModel", back_populates="stores")
     products = relationship("ProductModel", back_populates="store")
     orders = relationship("OrderModel", back_populates="store")
+    notifications = relationship(
+    "NotificationModel",
+    back_populates="store")

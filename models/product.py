@@ -13,3 +13,6 @@ class ProductModel(BaseModel):
     image = Column(String)
 
     store = relationship("StoreModel", back_populates="products")
+    order_products = relationship(
+    "OrderProductModel",
+    back_populates="product")
