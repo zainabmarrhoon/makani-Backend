@@ -2,8 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from models.notification import NotificationModel
+from models.store import StoreModel
 from serializers.notification import NotificationSchema
 from database import get_db
+from dependencies.get_current_user import get_current_user
 
 
 store_router = APIRouter(
@@ -23,8 +25,20 @@ notification_router = APIRouter(
 )
 def get_store_notifications(
     store_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
+    store = db.query(StoreModel).filter(
+        StoreModel.id == store_id,
+        StoreModel.owner_id == current_user.id
+    ).first()
+
+    if not store:
+        raise HTTPException(
+            status_code=404,
+            detail="Store not found"
+        )
+
     notifications = db.query(NotificationModel).filter(
         NotificationModel.store_id == store_id
     ).order_by(
@@ -40,10 +54,12 @@ def get_store_notifications(
 )
 def mark_notification_as_read(
     notification_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
-    notification = db.query(NotificationModel).filter(
-        NotificationModel.id == notification_id
+    notification = db.query(NotificationModel).join(StoreModel).filter(
+        NotificationModel.id == notification_id,
+        StoreModel.owner_id == current_user.id
     ).first()
 
     if not notification:

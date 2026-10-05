@@ -11,9 +11,10 @@ psycopg2-binary = "*"
 pydantic = "*"
 pyjwt = "*"
 passlib = "*"
-bcrypt = "*"
 alembic = "*"
 python-dotenv = "*"
+bcrypt = "==4.0.1"
+python-multipart = "*"
 
 [dev-packages]
 

@@ -1,0 +1,1310 @@
+./.gitignore
+====================
+./.gitignore
+.env./alembic/env.py
+====================
+./alembic/env.py
+from logging.config import fileConfig
+
+from sqlalchemy import engine_from_config
+from sqlalchemy import pool
+
+from alembic import context
+
+from models.base import Base
+from models import UserModel, StoreModel, ProductModel, OrderModel, OrderProductModel, NotificationModel
+from config.environment import DATABASE_URL
+
+config = context.config
+config.set_main_option("sqlalchemy.url", DATABASE_URL)
+
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
+
+target_metadata = Base.metadata
+
+
+def run_migrations_offline() -> None:
+    url = config.get_main_option("sqlalchemy.url")
+    context.configure(
+        url=url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
+    )
+
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+def run_migrations_online() -> None:
+    connectable = engine_from_config(
+        config.get_section(config.config_ini_section, {}),
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+    )
+
+    with connectable.connect() as connection:
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata
+        )
+
+        with context.begin_transaction():
+            context.run_migrations()
+
+
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    run_migrations_online()
+./alembic/README
+====================
+./alembic/README
+Generic single-database configuration../alembic/script.py.mako
+====================
+./alembic/script.py.mako
+"""${message}
+
+Revision ID: ${up_revision}
+Revises: ${down_revision | comma,n}
+Create Date: ${create_date}
+
+"""
+from typing import Sequence, Union
+
+from alembic import op
+import sqlalchemy as sa
+${imports if imports else ""}
+
+# revision identifiers, used by Alembic.
+revision: str = ${repr(up_revision)}
+down_revision: Union[str, Sequence[str], None] = ${repr(down_revision)}
+branch_labels: Union[str, Sequence[str], None] = ${repr(branch_labels)}
+depends_on: Union[str, Sequence[str], None] = ${repr(depends_on)}
+
+
+def upgrade() -> None:
+    """Upgrade schema."""
+    ${upgrades if upgrades else "pass"}
+
+
+def downgrade() -> None:
+    """Downgrade schema."""
+    ${downgrades if downgrades else "pass"}
+./alembic.ini
+====================
+./alembic.ini
+# A generic, single database configuration.
+
+[alembic]
+# path to migration scripts.
+# this is typically a path given in POSIX (e.g. forward slashes)
+# format, relative to the token %(here)s which refers to the location of this
+# ini file
+script_location = %(here)s/alembic
+
+# template used to generate migration file names; The default value is %%(rev)s_%%(slug)s
+# Uncomment the line below if you want the files to be prepended with date and time
+# see https://alembic.sqlalchemy.org/en/latest/tutorial.html#editing-the-ini-file
+# for all available tokens
+# file_template = %%(year)d_%%(month).2d_%%(day).2d_%%(hour).2d%%(minute).2d-%%(rev)s_%%(slug)s
+# Or organize into date-based subdirectories (requires recursive_version_locations = true)
+# file_template = %%(year)d/%%(month).2d/%%(day).2d_%%(hour).2d%%(minute).2d_%%(second).2d_%%(rev)s_%%(slug)s
+
+# sys.path path, will be prepended to sys.path if present.
+# defaults to the current working directory.  for multiple paths, the path separator
+# is defined by "path_separator" below.
+prepend_sys_path = .
+
+
+# timezone to use when rendering the date within the migration file
+# as well as the filename.
+# If specified, requires the tzdata library which can be installed by adding
+# `alembic[tz]` to the pip requirements.
+# string value is passed to ZoneInfo()
+# leave blank for localtime
+# timezone =
+
+# max length of characters to apply to the "slug" field
+# truncate_slug_length = 40
+
+# set to 'true' to run the environment during
+# the 'revision' command, regardless of autogenerate
+# revision_environment = false
+
+# set to 'true' to allow .pyc and .pyo files without
+# a source .py file to be detected as revisions in the
+# versions/ directory
+# sourceless = false
+
+# version location specification; This defaults
+# to <script_location>/versions.  When using multiple version
+# directories, initial revisions must be specified with --version-path.
+# The path separator used here should be the separator specified by "path_separator"
+# below.
+# version_locations = %(here)s/bar:%(here)s/bat:%(here)s/alembic/versions
+
+# path_separator; This indicates what character is used to split lists of file
+# paths, including version_locations and prepend_sys_path within configparser
+# files such as alembic.ini.
+# The default rendered in new alembic.ini files is "os", which uses os.pathsep
+# to provide os-dependent path splitting.
+#
+# Note that in order to support legacy alembic.ini files, this default does NOT
+# take place if path_separator is not present in alembic.ini.  If this
+# option is omitted entirely, fallback logic is as follows:
+#
+# 1. Parsing of the version_locations option falls back to using the legacy
+#    "version_path_separator" key, which if absent then falls back to the legacy
+#    behavior of splitting on spaces and/or commas.
+# 2. Parsing of the prepend_sys_path option falls back to the legacy
+#    behavior of splitting on spaces, commas, or colons.
+#
+# Valid values for path_separator are:
+#
+# path_separator = :
+# path_separator = ;
+# path_separator = space
+# path_separator = newline
+#
+# Use os.pathsep. Default configuration used for new projects.
+path_separator = os
+
+# set to 'true' to search source files recursively
+# in each "version_locations" directory
+# new in Alembic version 1.10
+# recursive_version_locations = false
+
+# the output encoding used when revision files
+# are written from script.py.mako
+# output_encoding = utf-8
+
+# database URL.  This is consumed by the user-maintained env.py script only.
+# other means of configuring database URLs may be customized within the env.py
+# file.
+sqlalchemy.url = driver://user:pass@localhost/dbname
+
+
+[post_write_hooks]
+# post_write_hooks defines scripts or Python functions that are run
+# on newly generated revision scripts.  See the documentation for further
+# detail and examples
+
+# format using "black" - use the console_scripts runner, against the "black" entrypoint
+# hooks = black
+# black.type = console_scripts
+# black.entrypoint = black
+# black.options = -l 79 REVISION_SCRIPT_FILENAME
+
+# lint with attempts to fix using "ruff" - use the module runner, against the "ruff" module
+# hooks = ruff
+# ruff.type = module
+# ruff.module = ruff
+# ruff.options = check --fix REVISION_SCRIPT_FILENAME
+
+# Alternatively, use the exec runner to execute a binary found on your PATH
+# hooks = ruff
+# ruff.type = exec
+# ruff.executable = ruff
+# ruff.options = check --fix REVISION_SCRIPT_FILENAME
+
+# Logging configuration.  This is also consumed by the user-maintained
+# env.py script only.
+[loggers]
+keys = root,sqlalchemy,alembic
+
+[handlers]
+keys = console
+
+[formatters]
+keys = generic
+
+[logger_root]
+level = WARNING
+handlers = console
+qualname =
+
+[logger_sqlalchemy]
+level = WARNING
+handlers =
+qualname = sqlalchemy.engine
+
+[logger_alembic]
+level = INFO
+handlers =
+qualname = alembic
+
+[handler_console]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = generic
+
+[formatter_generic]
+format = %(levelname)-5.5s [%(name)s] %(message)s
+datefmt = %H:%M:%S
+./config/environment.py
+====================
+./config/environment.py
+import os
+
+DATABASE_URL = os.getenv('DATABASE_URL')
+JWT_SECRET = os.getenv('JWT_SECRET')./controllers/auth.py
+====================
+./controllers/auth.py
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from models.user import UserModel
+from serializers.user import UserSchema, UserRegistrationSchema, UserLoginSchema, UserTokenSchema
+from database import get_db
+from dependencies.get_current_user import get_current_user
+
+router = APIRouter()
+
+@router.post("/register", response_model=UserTokenSchema, status_code=201)
+def create_user(user: UserRegistrationSchema, db: Session = Depends(get_db)):
+    existing_user = db.query(UserModel).filter(
+        (UserModel.username == user.username) | (UserModel.email == user.email)
+    ).first()
+
+    if existing_user:
+        raise HTTPException(status_code=409, detail="Username or email already exists")
+
+    new_user = UserModel(
+        username=user.username,
+        email=user.email
+    )
+
+    new_user.set_password(user.password)
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    token = new_user.generate_token()
+
+    return {"token": token, "message": "Registration successful"}
+
+@router.post("/login", response_model=UserTokenSchema)
+def login(user: UserLoginSchema, db: Session = Depends(get_db)):
+    db_user = db.query(UserModel).filter(
+        UserModel.username == user.username
+    ).first()
+
+    if not db_user or not db_user.verify_password(user.password):
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    token = db_user.generate_token()
+
+    return {"token": token, "message": "Login successful"}
+
+@router.get("/current_user", response_model=UserSchema)
+def current_user(user: UserSchema = Depends(get_current_user)):
+    return user./controllers/notifications.py
+====================
+./controllers/notifications.py
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from models.notification import NotificationModel
+from serializers.notification import NotificationSchema
+from database import get_db
+
+
+store_router = APIRouter(
+    prefix="/stores",
+    tags=["Notifications"]
+)
+
+notification_router = APIRouter(
+    prefix="/notifications",
+    tags=["Notifications"]
+)
+
+
+@store_router.get(
+    "/{store_id}/notifications",
+    response_model=list[NotificationSchema]
+)
+def get_store_notifications(
+    store_id: int,
+    db: Session = Depends(get_db)
+):
+    notifications = db.query(NotificationModel).filter(
+        NotificationModel.store_id == store_id
+    ).order_by(
+        NotificationModel.created_at.desc()
+    ).all()
+
+    return notifications
+
+
+@notification_router.put(
+    "/{notification_id}/read",
+    response_model=NotificationSchema
+)
+def mark_notification_as_read(
+    notification_id: int,
+    db: Session = Depends(get_db)
+):
+    notification = db.query(NotificationModel).filter(
+        NotificationModel.id == notification_id
+    ).first()
+
+    if not notification:
+        raise HTTPException(
+            status_code=404,
+            detail="Notification not found"
+        )
+
+    notification.is_read = True
+
+    db.commit()
+    db.refresh(notification)
+
+    return notification./controllers/orders.py
+====================
+./controllers/orders.py
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from models.order import OrderModel
+from models.store import StoreModel
+from serializers.order import OrderCreateSchema, OrderUpdateSchema, OrderSchema
+from database import get_db
+from dependencies.get_current_user import get_current_user
+
+router = APIRouter()
+
+
+@router.post("/stores/{store_id}/orders", response_model=OrderSchema, status_code=201)
+def create_order(
+    store_id: int,
+    order: OrderCreateSchema,
+    db: Session = Depends(get_db)
+):
+    store = db.query(StoreModel).filter(
+        StoreModel.id == store_id
+    ).first()
+
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    new_order = OrderModel(
+        store_id=store_id,
+        customer_name=order.customer_name,
+        customer_phone=order.customer_phone,
+        customer_address=order.customer_address,
+        total_amount=order.total_amount,
+        payment_method=order.payment_method,
+        payment_proof=order.payment_proof
+    )
+
+    db.add(new_order)
+    db.commit()
+    db.refresh(new_order)
+
+    return new_order
+
+
+@router.get("/stores/{store_id}/orders", response_model=list[OrderSchema])
+def get_store_orders(
+    store_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    store = db.query(StoreModel).filter(
+        StoreModel.id == store_id,
+        StoreModel.owner_id == current_user.id
+    ).first()
+
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    orders = db.query(OrderModel).filter(
+        OrderModel.store_id == store_id
+    ).all()
+
+    return orders
+
+
+@router.get("/orders/{order_id}", response_model=OrderSchema)
+def get_order(
+    order_id: int,
+    db: Session = Depends(get_db)
+):
+    order = db.query(OrderModel).filter(
+        OrderModel.id == order_id
+    ).first()
+
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    return order
+
+
+@router.put("/orders/{order_id}/status", response_model=OrderSchema)
+def update_order_status(
+    order_id: int,
+    order: OrderUpdateSchema,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    db_order = db.query(OrderModel).join(StoreModel).filter(
+        OrderModel.id == order_id,
+        StoreModel.owner_id == current_user.id
+    ).first()
+
+    if not db_order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    db_order.status = order.status
+
+    db.commit()
+    db.refresh(db_order)
+
+    return db_order./controllers/order_products.py
+====================
+./controllers/order_products.py
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from models.order_product import OrderProductModel
+from models.order import OrderModel
+from models.product import ProductModel
+from serializers.order_product import (
+    OrderProductCreateSchema,
+    OrderProductSchema
+)
+from database import get_db
+
+router = APIRouter()
+
+
+@router.get(
+    "/orders/{order_id}/products",
+    response_model=list[OrderProductSchema]
+)
+def get_order_products(
+    order_id: int,
+    db: Session = Depends(get_db)
+):
+    order = db.query(OrderModel).filter(
+        OrderModel.id == order_id
+    ).first()
+
+    if not order:
+        raise HTTPException(
+            status_code=404,
+            detail="Order not found"
+        )
+
+    order_products = db.query(OrderProductModel).filter(
+        OrderProductModel.order_id == order_id
+    ).all()
+
+    return order_products
+
+
+@router.post(
+    "/orders/{order_id}/products",
+    response_model=OrderProductSchema,
+    status_code=201
+)
+def create_order_product(
+    order_id: int,
+    order_product: OrderProductCreateSchema,
+    db: Session = Depends(get_db)
+):
+    order = db.query(OrderModel).filter(
+        OrderModel.id == order_id
+    ).first()
+
+    if not order:
+        raise HTTPException(
+            status_code=404,
+            detail="Order not found"
+        )
+
+    product = db.query(ProductModel).filter(
+        ProductModel.id == order_product.product_id
+    ).first()
+
+    if not product:
+        raise HTTPException(
+            status_code=404,
+            detail="Product not found"
+        )
+
+    new_order_product = OrderProductModel(
+        order_id=order_id,
+        product_id=order_product.product_id,
+        quantity=order_product.quantity,
+        price=order_product.price
+    )
+
+    db.add(new_order_product)
+    db.commit()
+    db.refresh(new_order_product)
+
+    return new_order_product./controllers/products.py
+====================
+./controllers/products.py
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from models.product import ProductModel
+from models.store import StoreModel
+from serializers.product import ProductCreateSchema, ProductUpdateSchema, ProductSchema
+from database import get_db
+from dependencies.get_current_user import get_current_user
+
+router = APIRouter()
+
+@router.get("/stores/{store_id}/products", response_model=list[ProductSchema])
+def get_products(store_id: int, db: Session = Depends(get_db)):
+    products = db.query(ProductModel).filter(
+        ProductModel.store_id == store_id
+    ).all()
+
+    return products
+
+@router.post("/stores/{store_id}/products", response_model=ProductSchema, status_code=201)
+def create_product(
+    store_id: int,
+    product: ProductCreateSchema,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    store = db.query(StoreModel).filter(
+        StoreModel.id == store_id,
+        StoreModel.owner_id == current_user.id
+    ).first()
+
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    new_product = ProductModel(
+        store_id=store_id,
+        name=product.name,
+        description=product.description,
+        price=product.price,
+        image=product.image
+    )
+
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
+
+    return new_product
+
+@router.get("/products/{product_id}", response_model=ProductSchema)
+def get_product(product_id: int, db: Session = Depends(get_db)):
+    product = db.query(ProductModel).filter(
+        ProductModel.id == product_id
+    ).first()
+
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    return product
+
+@router.put("/products/{product_id}", response_model=ProductSchema)
+def update_product(
+    product_id: int,
+    product: ProductUpdateSchema,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    db_product = db.query(ProductModel).join(StoreModel).filter(
+        ProductModel.id == product_id,
+        StoreModel.owner_id == current_user.id
+    ).first()
+
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    if product.name is not None:
+        db_product.name = product.name
+
+    if product.description is not None:
+        db_product.description = product.description
+
+    if product.price is not None:
+        db_product.price = product.price
+
+    if product.image is not None:
+        db_product.image = product.image
+
+    db.commit()
+    db.refresh(db_product)
+
+    return db_product
+
+@router.delete("/products/{product_id}", status_code=204)
+def delete_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    db_product = db.query(ProductModel).join(StoreModel).filter(
+        ProductModel.id == product_id,
+        StoreModel.owner_id == current_user.id
+    ).first()
+
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    db.delete(db_product)
+    db.commit()./controllers/stores.py
+====================
+./controllers/stores.py
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from models.store import StoreModel
+from serializers.store import StoreCreateSchema, StoreUpdateSchema, StoreSchema
+from database import get_db
+from dependencies.get_current_user import get_current_user
+
+router = APIRouter()
+
+
+@router.get("/stores", response_model=list[StoreSchema])
+def get_stores(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    stores = db.query(StoreModel).filter(
+        StoreModel.owner_id == current_user.id
+    ).all()
+
+    return stores
+
+
+@router.post("/stores", response_model=StoreSchema, status_code=201)
+def create_store(
+    store: StoreCreateSchema,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    existing_store = db.query(StoreModel).filter(
+        StoreModel.slug == store.slug
+    ).first()
+
+    if existing_store:
+        raise HTTPException(
+            status_code=409,
+            detail="Store slug already exists"
+        )
+
+    new_store = StoreModel(
+        owner_id=current_user.id,
+        name=store.name,
+        description=store.description,
+        phone=store.phone,
+        email=store.email,
+        address=store.address,
+        logo=store.logo,
+        slug=store.slug
+    )
+
+    db.add(new_store)
+    db.commit()
+    db.refresh(new_store)
+
+    return new_store
+
+
+@router.get("/stores/{store_id}", response_model=StoreSchema)
+def get_store(
+    store_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    store = db.query(StoreModel).filter(
+        StoreModel.id == store_id,
+        StoreModel.owner_id == current_user.id
+    ).first()
+
+    if not store:
+        raise HTTPException(
+            status_code=404,
+            detail="Store not found"
+        )
+
+    return store
+
+
+@router.put("/stores/{store_id}", response_model=StoreSchema)
+def update_store(
+    store_id: int,
+    store: StoreUpdateSchema,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    db_store = db.query(StoreModel).filter(
+        StoreModel.id == store_id,
+        StoreModel.owner_id == current_user.id
+    ).first()
+
+    if not db_store:
+        raise HTTPException(
+            status_code=404,
+            detail="Store not found"
+        )
+
+    if store.name is not None:
+        db_store.name = store.name
+
+    if store.description is not None:
+        db_store.description = store.description
+
+    if store.phone is not None:
+        db_store.phone = store.phone
+
+    if store.email is not None:
+        db_store.email = store.email
+
+    if store.address is not None:
+        db_store.address = store.address
+
+    if store.logo is not None:
+        db_store.logo = store.logo
+
+    if store.slug is not None:
+        existing_store = db.query(StoreModel).filter(
+            StoreModel.slug == store.slug,
+            StoreModel.id != store_id
+        ).first()
+
+        if existing_store:
+            raise HTTPException(
+                status_code=409,
+                detail="Store slug already exists"
+            )
+
+        db_store.slug = store.slug
+
+    if store.status is not None:
+        db_store.status = store.status
+
+    db.commit()
+    db.refresh(db_store)
+
+    return db_store./controllers/__init__.py
+====================
+./controllers/__init__.py
+./database.py
+====================
+./database.py
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from config.environment import DATABASE_URL
+
+engine = create_engine(DATABASE_URL)
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()./dependencies/get_current_user.py
+====================
+./dependencies/get_current_user.py
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer
+from sqlalchemy.orm import Session
+from models.user import UserModel
+from database import get_db
+import jwt
+from jwt import DecodeError, ExpiredSignatureError  # We import specific exceptions to handle them explicitly
+from jwt.exceptions import InvalidSubjectError
+from config.environment import JWT_SECRET
+
+# FastAPI helper to extract the tokent from the auth headers : "Bearer ...."
+http_bearer = HTTPBearer()
+
+# TODO: fix the typing for the token
+def get_current_user(db: Session = Depends(get_db), token: str = Depends(http_bearer)):
+  try:
+    # Decode the token using the secret key
+    payload = jwt.decode(token.credentials, JWT_SECRET, algorithms=["HS256"])
+    current_user_id =  payload.get("sub")
+
+    user = db.query(UserModel).filter(UserModel.id == current_user_id).first()
+
+    if not user:
+      raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                              detail="Invalid username or password")
+  except DecodeError as err:
+     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                          detail=f'Could not decode token: {str(err)}')
+
+  # Handle expired token errors
+  except ExpiredSignatureError:
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                        detail='Token has expired')
+
+  except InvalidSubjectError:
+     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail='Token invalid')
+  return user./dependencies/__init__.py
+====================
+./dependencies/__init__.py
+./main.py
+====================
+./main.py
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from controllers.order_products import router as order_products_router
+from controllers.auth import router as auth_router
+from controllers.products import router as products_router
+from controllers.stores import router as stores_router
+from controllers.orders import router as orders_router
+from controllers.notifications import (
+    store_router,
+    notification_router
+)
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
+app.include_router(products_router, tags=["Products"])
+app.include_router(stores_router, tags=["Stores"])
+app.include_router(orders_router, tags=["Orders"])
+app.include_router(store_router)
+app.include_router(notification_router)
+app.include_router(order_products_router, tags=["Order Products"])
+
+@app.get("/")
+def root():
+    return {"message": "Makani API is running"}./models/base.py
+====================
+./models/base.py
+from sqlalchemy import Column, DateTime, Integer, func
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+class BaseModel(Base):
+    __abstract__ = True
+
+    id = Column(Integer, primary_key=True, index=True)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())./models/notification.py
+====================
+./models/notification.py
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+from datetime import datetime, timezone
+
+from .base import BaseModel
+
+
+class NotificationModel(BaseModel):
+
+    __tablename__ = "notifications"
+
+    store_id = Column(
+        ForeignKey("stores.id"),
+        nullable=False
+    )
+
+    order_id = Column(
+        ForeignKey("orders.id"),
+        nullable=False
+    )
+
+    message = Column(
+        String,
+        nullable=False
+    )
+
+    type = Column(
+        String,
+        nullable=False
+    )
+
+    is_read = Column(
+        Boolean,
+        default=False,
+        nullable=False
+    )
+
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False
+    )
+
+    store = relationship(
+        "StoreModel",
+        back_populates="notifications"
+    )
+
+    order = relationship(
+        "OrderModel",
+        back_populates="notifications"
+    )./models/order.py
+====================
+./models/order.py
+from sqlalchemy import Column, String, Text, Numeric, ForeignKey
+from sqlalchemy.orm import relationship
+from .base import BaseModel
+
+
+class OrderModel(BaseModel):
+
+    __tablename__ = "orders"
+
+    store_id = Column(ForeignKey("stores.id"), nullable=False)
+    customer_name = Column(String, nullable=False)
+    customer_phone = Column(String, nullable=False)
+    customer_address = Column(Text, nullable=False)
+    total_amount = Column(Numeric(10, 2), nullable=False)
+    payment_method = Column(String, nullable=False)
+    payment_proof = Column(String)
+    status = Column(String, default="pending", nullable=False)
+
+    store = relationship("StoreModel", back_populates="orders")
+    order_products = relationship("OrderProductModel", back_populates="order")
+    notifications = relationship(
+    "NotificationModel",
+    back_populates="order")
+./models/order_product.py
+====================
+./models/order_product.py
+from sqlalchemy import Column, Integer, Numeric, ForeignKey
+from sqlalchemy.orm import relationship
+from .base import BaseModel
+
+
+class OrderProductModel(BaseModel):
+
+    __tablename__ = "order_products"
+
+    order_id = Column(
+        ForeignKey("orders.id"),
+        nullable=False
+    )
+
+    product_id = Column(
+        ForeignKey("products.id"),
+        nullable=False
+    )
+
+    quantity = Column(
+        Integer,
+        nullable=False
+    )
+
+    price = Column(
+        Numeric(10, 2),
+        nullable=False
+    )
+
+    order = relationship(
+        "OrderModel",
+        back_populates="order_products"
+    )
+
+    product = relationship(
+        "ProductModel",
+        back_populates="order_products"
+    )./models/product.py
+====================
+./models/product.py
+from sqlalchemy import Column, String, Text, Numeric, ForeignKey
+from sqlalchemy.orm import relationship
+from .base import BaseModel
+
+class ProductModel(BaseModel):
+
+    __tablename__ = "products"
+
+    store_id = Column(ForeignKey("stores.id"), nullable=False)
+    name = Column(String, nullable=False)
+    description = Column(Text)
+    price = Column(Numeric(10, 2), nullable=False)
+    image = Column(String)
+
+    store = relationship("StoreModel", back_populates="products")
+    order_products = relationship(
+    "OrderProductModel",
+    back_populates="product")./models/store.py
+====================
+./models/store.py
+from sqlalchemy import Column, String, Text, ForeignKey
+from sqlalchemy.orm import relationship
+from .base import BaseModel
+
+class StoreModel(BaseModel):
+
+    __tablename__ = "stores"
+
+    owner_id = Column(ForeignKey("users.id"), nullable=False)
+    name = Column(String, nullable=False)
+    description = Column(Text)
+    phone = Column(String)
+    email = Column(String)
+    address = Column(Text)
+    logo = Column(String)
+    slug = Column(String, unique=True, nullable=False)
+    status = Column(String, default="draft", nullable=False)
+
+    owner = relationship("UserModel", back_populates="stores")
+    products = relationship("ProductModel", back_populates="store")
+    orders = relationship("OrderModel", back_populates="store")
+    notifications = relationship(
+    "NotificationModel",
+    back_populates="store")./models/user.py
+====================
+./models/user.py
+from sqlalchemy import Column, String
+from sqlalchemy.orm import relationship
+from .base import BaseModel
+from passlib.context import CryptContext
+from datetime import datetime, timedelta, timezone
+import jwt
+from config.environment import JWT_SECRET
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+class UserModel(BaseModel):
+
+    __tablename__ = "users"
+
+    username = Column(String, unique=True, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    password = Column(String, nullable=False)
+
+    stores = relationship("StoreModel", back_populates="owner")
+
+    def set_password(self, plain_txt_password: str):
+        self.password = pwd_context.hash(plain_txt_password)
+
+    def verify_password(self, plain_txt_password: str) -> bool:
+        return pwd_context.verify(plain_txt_password, self.password)
+
+    def generate_token(self):
+        payload = {
+            "exp": datetime.now(timezone.utc) + timedelta(days=1),
+            "iat": datetime.now(timezone.utc),
+            "sub": str(self.id),
+        }
+
+        token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+
+        return token./models/__init__.py
+====================
+./models/__init__.py
+from .base import BaseModel
+from .user import UserModel
+from .store import StoreModel
+from .product import ProductModel
+from .order import OrderModel
+from .order_product import OrderProductModel
+from .notification import NotificationModel./Pipfile
+====================
+./Pipfile
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+fastapi = "*"
+uvicorn = "*"
+sqlalchemy = "*"
+psycopg2-binary = "*"
+pydantic = "*"
+pyjwt = "*"
+passlib = "*"
+bcrypt = "*"
+alembic = "*"
+python-dotenv = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.14"
+./serializers/notification.py
+====================
+./serializers/notification.py
+from datetime import datetime
+from pydantic import BaseModel
+
+
+class NotificationSchema(BaseModel):
+    id: int
+    store_id: int
+    order_id: int
+    message: str
+    type: str
+    is_read: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True./serializers/order.py
+====================
+./serializers/order.py
+from pydantic import BaseModel
+
+
+class OrderCreateSchema(BaseModel):
+    customer_name: str
+    customer_phone: str
+    customer_address: str
+    total_amount: float
+    payment_method: str
+    payment_proof: str | None = None
+
+
+class OrderUpdateSchema(BaseModel):
+    status: str
+
+
+class OrderSchema(BaseModel):
+    id: int
+    store_id: int
+    customer_name: str
+    customer_phone: str
+    customer_address: str
+    total_amount: float
+    payment_method: str
+    payment_proof: str | None = None
+    status: str
+
+    class Config:
+        from_attributes = True./serializers/order_product.py
+====================
+./serializers/order_product.py
+from decimal import Decimal
+from pydantic import BaseModel
+
+
+class OrderProductCreateSchema(BaseModel):
+    product_id: int
+    quantity: int
+    price: Decimal
+
+
+class OrderProductSchema(BaseModel):
+    id: int
+    order_id: int
+    product_id: int
+    quantity: int
+    price: Decimal
+
+    class Config:
+        from_attributes = True./serializers/product.py
+====================
+./serializers/product.py
+from pydantic import BaseModel
+
+class ProductCreateSchema(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    image: str | None = None
+
+class ProductUpdateSchema(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    price: float | None = None
+    image: str | None = None
+
+class ProductSchema(BaseModel):
+    id: int
+    store_id: int
+    name: str
+    description: str | None = None
+    price: float
+    image: str | None = None
+
+    class Config:
+        from_attributes = True./serializers/store.py
+====================
+./serializers/store.py
+from pydantic import BaseModel
+
+
+class StoreCreateSchema(BaseModel):
+    name: str
+    description: str | None = None
+    phone: str | None = None
+    email: str | None = None
+    address: str | None = None
+    logo: str | None = None
+    slug: str
+
+
+class StoreUpdateSchema(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    phone: str | None = None
+    email: str | None = None
+    address: str | None = None
+    logo: str | None = None
+    slug: str | None = None
+    status: str | None = None
+
+
+class StoreSchema(BaseModel):
+    id: int
+    owner_id: int
+    name: str
+    description: str | None = None
+    phone: str | None = None
+    email: str | None = None
+    address: str | None = None
+    logo: str | None = None
+    slug: str
+    status: str
+
+    class Config:
+        from_attributes = True./serializers/user.py
+====================
+./serializers/user.py
+from pydantic import BaseModel
+
+class UserRegistrationSchema(BaseModel):
+    username: str
+    email: str
+    password: str
+
+class UserLoginSchema(BaseModel):
+    username: str
+    password: str
+
+class UserSchema(BaseModel):
+    id: int
+    username: str
+    email: str
+
+    class Config:
+        from_attributes = True
+
+class UserTokenSchema(BaseModel):
+    token: str
+    message: str./serializers/__init__.py
+====================
+./serializers/__init__.py
