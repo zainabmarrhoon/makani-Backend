@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
+from uuid import uuid4
+import os
 
 from models.store import StoreModel
-from serializers.store import StoreCreateSchema, StoreUpdateSchema, StoreSchema
+from serializers.store import StoreUpdateSchema, StoreSchema
 from database import get_db
 from dependencies.get_current_user import get_current_user
 
@@ -23,12 +25,18 @@ def get_stores(
 
 @router.post("/stores", response_model=StoreSchema, status_code=201)
 def create_store(
-    store: StoreCreateSchema,
+    name: str = Form(...),
+    description: str | None = Form(None),
+    phone: str | None = Form(None),
+    email: str | None = Form(None),
+    address: str | None = Form(None),
+    slug: str = Form(...),
+    logo: UploadFile | None = File(None),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
     existing_store = db.query(StoreModel).filter(
-        StoreModel.slug == store.slug
+        StoreModel.slug == slug
     ).first()
 
     if existing_store:
@@ -37,15 +45,38 @@ def create_store(
             detail="Store slug already exists"
         )
 
+    logo_path = None
+
+    if logo:
+        allowed_types = [
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+        ]
+
+        if logo.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400,
+                detail="Logo must be a JPG, PNG, or WEBP image"
+            )
+
+        file_extension = logo.filename.split(".")[-1]
+        file_name = f"{uuid4().hex}.{file_extension}"
+
+        logo_path = f"uploads/logos/{file_name}"
+
+        with open(logo_path, "wb") as file:
+            file.write(logo.file.read())
+
     new_store = StoreModel(
         owner_id=current_user.id,
-        name=store.name,
-        description=store.description,
-        phone=store.phone,
-        email=store.email,
-        address=store.address,
-        logo=store.logo,
-        slug=store.slug
+        name=name,
+        description=description,
+        phone=phone,
+        email=email,
+        address=address,
+        logo=logo_path,
+        slug=slug
     )
 
     db.add(new_store)
@@ -132,3 +163,26 @@ def update_store(
     db.refresh(db_store)
 
     return db_store
+
+
+@router.delete("/stores/{store_id}", status_code=204)
+def delete_store(
+    store_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    store = db.query(StoreModel).filter(
+        StoreModel.id == store_id,
+        StoreModel.owner_id == current_user.id
+    ).first()
+
+    if not store:
+        raise HTTPException(
+            status_code=404,
+            detail="Store not found"
+        )
+
+    db.delete(store)
+    db.commit()
+
+    return

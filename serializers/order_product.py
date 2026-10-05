@@ -5,7 +5,6 @@ from pydantic import BaseModel
 class OrderProductCreateSchema(BaseModel):
     product_id: int
     quantity: int
-    price: Decimal
 
 
 class OrderProductSchema(BaseModel):

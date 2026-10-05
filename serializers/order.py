@@ -1,17 +1,13 @@
+from decimal import Decimal
 from pydantic import BaseModel
-
-
-class OrderCreateSchema(BaseModel):
-    customer_name: str
-    customer_phone: str
-    customer_address: str
-    total_amount: float
-    payment_method: str
-    payment_proof: str | None = None
 
 
 class OrderUpdateSchema(BaseModel):
     status: str
+
+
+class PaymentStatusUpdateSchema(BaseModel):
+    payment_status: str
 
 
 class OrderSchema(BaseModel):
@@ -20,9 +16,10 @@ class OrderSchema(BaseModel):
     customer_name: str
     customer_phone: str
     customer_address: str
-    total_amount: float
+    total_amount: Decimal
     payment_method: str
     payment_proof: str | None = None
+    payment_status: str
     status: str
 
     class Config:
