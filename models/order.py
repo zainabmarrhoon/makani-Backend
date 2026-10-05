@@ -14,10 +14,12 @@ class OrderModel(BaseModel):
     total_amount = Column(Numeric(10, 2), nullable=False)
     payment_method = Column(String, nullable=False)
     payment_proof = Column(String)
+    payment_status = Column(String, default="pending", nullable=False)
     status = Column(String, default="pending", nullable=False)
 
     store = relationship("StoreModel", back_populates="orders")
     order_products = relationship("OrderProductModel", back_populates="order")
     notifications = relationship(
-    "NotificationModel",
-    back_populates="order")
+        "NotificationModel",
+        back_populates="order"
+    )

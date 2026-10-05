@@ -58,24 +58,34 @@ def create_order_product(
             detail="Order not found"
         )
 
+    if order_product.quantity <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Quantity must be greater than 0"
+        )
+
     product = db.query(ProductModel).filter(
-        ProductModel.id == order_product.product_id
+        ProductModel.id == order_product.product_id,
+        ProductModel.store_id == order.store_id
     ).first()
 
     if not product:
         raise HTTPException(
             status_code=404,
-            detail="Product not found"
+            detail="Product not found in this store"
         )
 
     new_order_product = OrderProductModel(
         order_id=order_id,
-        product_id=order_product.product_id,
+        product_id=product.id,
         quantity=order_product.quantity,
-        price=order_product.price
+        price=product.price
     )
 
     db.add(new_order_product)
+
+    order.total_amount += product.price * order_product.quantity
+
     db.commit()
     db.refresh(new_order_product)
 
