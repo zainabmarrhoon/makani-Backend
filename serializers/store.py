@@ -27,6 +27,7 @@ class StoreUpdateSchema(BaseModel):
     show_about: bool | None = None
     show_contact: bool | None = None
     show_cart: bool | None = None
+    show_orders: bool | None = None
 
     hero_title: str | None = None
     hero_description: str | None = None
@@ -54,6 +55,7 @@ class StoreSchema(BaseModel):
     show_about: bool
     show_contact: bool
     show_cart: bool
+    show_orders: bool
 
     hero_title: str | None = None
     hero_description: str | None = None

@@ -23,6 +23,7 @@ class StoreModel(BaseModel):
     show_about = Column(Boolean, default=True, nullable=False)
     show_contact = Column(Boolean, default=True, nullable=False)
     show_cart = Column(Boolean, default=True, nullable=False)
+    show_orders = Column(Boolean, default=True, nullable=False)
 
     hero_title = Column(String, default="Welcome to our store")
     hero_description = Column(Text)
