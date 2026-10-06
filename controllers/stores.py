@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from uuid import uuid4
-import os
 
 from models.store import StoreModel
+from models.product import ProductModel
 from serializers.store import StoreUpdateSchema, StoreSchema
 from database import get_db
 from dependencies.get_current_user import get_current_user
@@ -76,7 +76,9 @@ def create_store(
         email=email,
         address=address,
         logo=logo_path,
-        slug=slug
+        slug=slug,
+        hero_description=description,
+        about_description=description
     )
 
     db.add(new_store)
@@ -142,6 +144,9 @@ def update_store(
     if store.logo is not None:
         db_store.logo = store.logo
 
+    if store.hero_image is not None:
+        db_store.hero_image = store.hero_image
+
     if store.slug is not None:
         existing_store = db.query(StoreModel).filter(
             StoreModel.slug == store.slug,
@@ -159,10 +164,187 @@ def update_store(
     if store.status is not None:
         db_store.status = store.status
 
+    if store.benefitpay_iban is not None:
+        db_store.benefitpay_iban = store.benefitpay_iban
+
+    if store.show_home is not None:
+        db_store.show_home = store.show_home
+
+    if store.show_products is not None:
+        db_store.show_products = store.show_products
+
+    if store.show_about is not None:
+        db_store.show_about = store.show_about
+
+    if store.show_contact is not None:
+        db_store.show_contact = store.show_contact
+
+    if store.show_cart is not None:
+        db_store.show_cart = store.show_cart
+
+    if store.show_orders is not None:
+        db_store.show_orders = store.show_orders
+
+    if store.hero_title is not None:
+        db_store.hero_title = store.hero_title
+
+    if store.hero_description is not None:
+        db_store.hero_description = store.hero_description
+
+    if store.hero_button_text is not None:
+        db_store.hero_button_text = store.hero_button_text
+
+    if store.about_title is not None:
+        db_store.about_title = store.about_title
+
+    if store.about_description is not None:
+        db_store.about_description = store.about_description
+
     db.commit()
     db.refresh(db_store)
 
     return db_store
+
+
+@router.post("/stores/{store_id}/hero-image", response_model=StoreSchema)
+def upload_hero_image(
+    store_id: int,
+    hero_image: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    store = db.query(StoreModel).filter(
+        StoreModel.id == store_id,
+        StoreModel.owner_id == current_user.id
+    ).first()
+
+    if not store:
+        raise HTTPException(
+            status_code=404,
+            detail="Store not found"
+        )
+
+    allowed_types = [
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+    ]
+
+    if hero_image.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400,
+            detail="Hero image must be a JPG, PNG, or WEBP image"
+        )
+
+    file_extension = hero_image.filename.split(".")[-1]
+    file_name = f"{uuid4().hex}.{file_extension}"
+
+    hero_image_path = f"uploads/hero/{file_name}"
+
+    with open(hero_image_path, "wb") as file:
+        file.write(hero_image.file.read())
+
+    store.hero_image = hero_image_path
+
+    db.commit()
+    db.refresh(store)
+
+    return store
+
+
+@router.get("/public/stores/{slug}")
+def get_public_store(
+    slug: str,
+    db: Session = Depends(get_db)
+):
+    store = db.query(StoreModel).filter(
+        StoreModel.slug == slug,
+        StoreModel.status == "published"
+    ).first()
+
+    if not store:
+        raise HTTPException(
+            status_code=404,
+            detail="Store not found"
+        )
+
+    products = db.query(ProductModel).filter(
+        ProductModel.store_id == store.id
+    ).all()
+
+    return {
+        "id": store.id,
+        "name": store.name,
+        "description": store.description,
+        "phone": store.phone,
+        "email": store.email,
+        "address": store.address,
+        "logo": store.logo,
+        "hero_image": store.hero_image,
+        "slug": store.slug,
+        "status": store.status,
+        "benefitpay_iban": store.benefitpay_iban,
+        "show_home": store.show_home,
+        "show_products": store.show_products,
+        "show_about": store.show_about,
+        "show_contact": store.show_contact,
+        "show_cart": store.show_cart,
+        "show_orders": store.show_orders,
+        "hero_title": store.hero_title,
+        "hero_description": store.hero_description,
+        "hero_button_text": store.hero_button_text,
+        "about_title": store.about_title,
+        "about_description": store.about_description,
+        "products": products
+    }
+
+
+@router.get("/stores/{store_id}/preview")
+def preview_store(
+    store_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    store = db.query(StoreModel).filter(
+        StoreModel.id == store_id,
+        StoreModel.owner_id == current_user.id
+    ).first()
+
+    if not store:
+        raise HTTPException(
+            status_code=404,
+            detail="Store not found"
+        )
+
+    products = db.query(ProductModel).filter(
+        ProductModel.store_id == store.id
+    ).all()
+
+    return {
+        "id": store.id,
+        "name": store.name,
+        "description": store.description,
+        "phone": store.phone,
+        "email": store.email,
+        "address": store.address,
+        "logo": store.logo,
+        "hero_image": store.hero_image,
+        "slug": store.slug,
+        "status": store.status,
+        "benefitpay_iban": store.benefitpay_iban,
+        "show_home": store.show_home,
+        "show_products": store.show_products,
+        "show_about": store.show_about,
+        "show_contact": store.show_contact,
+        "show_cart": store.show_cart,
+        "show_orders": store.show_orders,
+        "hero_title": store.hero_title,
+        "hero_description": store.hero_description,
+        "hero_button_text": store.hero_button_text,
+        "about_title": store.about_title,
+        "about_description": store.about_description,
+        "products": products
+    }
 
 
 @router.delete("/stores/{store_id}", status_code=204)
