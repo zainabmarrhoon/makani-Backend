@@ -1,3 +1,4 @@
+
 from pydantic import BaseModel
 
 
@@ -21,6 +22,19 @@ class StoreUpdateSchema(BaseModel):
     slug: str | None = None
     status: str | None = None
 
+    show_home: bool | None = None
+    show_products: bool | None = None
+    show_about: bool | None = None
+    show_contact: bool | None = None
+    show_cart: bool | None = None
+
+    hero_title: str | None = None
+    hero_description: str | None = None
+    hero_button_text: str | None = None
+
+    about_title: str | None = None
+    about_description: str | None = None
+
 
 class StoreSchema(BaseModel):
     id: int
@@ -33,6 +47,19 @@ class StoreSchema(BaseModel):
     logo: str | None = None
     slug: str
     status: str
+
+    show_home: bool
+    show_products: bool
+    show_about: bool
+    show_contact: bool
+    show_cart: bool
+
+    hero_title: str | None = None
+    hero_description: str | None = None
+    hero_button_text: str | None = None
+
+    about_title: str | None = None
+    about_description: str | None = None
 
     class Config:
         from_attributes = True
