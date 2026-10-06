@@ -17,6 +17,7 @@ class StoreModel(BaseModel):
     hero_image = Column(String)
     slug = Column(String, unique=True, nullable=False)
     status = Column(String, default="draft", nullable=False)
+    benefitpay_iban = Column(String)
 
     show_home = Column(Boolean, default=True, nullable=False)
     show_products = Column(Boolean, default=True, nullable=False)

@@ -21,6 +21,7 @@ class StoreUpdateSchema(BaseModel):
     hero_image: str | None = None
     slug: str | None = None
     status: str | None = None
+    benefitpay_iban: str | None = None
 
     show_home: bool | None = None
     show_products: bool | None = None
@@ -49,6 +50,7 @@ class StoreSchema(BaseModel):
     hero_image: str | None = None
     slug: str
     status: str
+    benefitpay_iban: str | None = None
 
     show_home: bool
     show_products: bool

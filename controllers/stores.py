@@ -164,6 +164,9 @@ def update_store(
     if store.status is not None:
         db_store.status = store.status
 
+    if store.benefitpay_iban is not None:
+        db_store.benefitpay_iban = store.benefitpay_iban
+
     if store.show_home is not None:
         db_store.show_home = store.show_home
 
@@ -178,6 +181,9 @@ def update_store(
 
     if store.show_cart is not None:
         db_store.show_cart = store.show_cart
+
+    if store.show_orders is not None:
+        db_store.show_orders = store.show_orders
 
     if store.hero_title is not None:
         db_store.hero_title = store.hero_title
@@ -277,11 +283,13 @@ def get_public_store(
         "hero_image": store.hero_image,
         "slug": store.slug,
         "status": store.status,
+        "benefitpay_iban": store.benefitpay_iban,
         "show_home": store.show_home,
         "show_products": store.show_products,
         "show_about": store.show_about,
         "show_contact": store.show_contact,
         "show_cart": store.show_cart,
+        "show_orders": store.show_orders,
         "hero_title": store.hero_title,
         "hero_description": store.hero_description,
         "hero_button_text": store.hero_button_text,
@@ -323,11 +331,13 @@ def preview_store(
         "hero_image": store.hero_image,
         "slug": store.slug,
         "status": store.status,
+        "benefitpay_iban": store.benefitpay_iban,
         "show_home": store.show_home,
         "show_products": store.show_products,
         "show_about": store.show_about,
         "show_contact": store.show_contact,
         "show_cart": store.show_cart,
+        "show_orders": store.show_orders,
         "hero_title": store.hero_title,
         "hero_description": store.hero_description,
         "hero_button_text": store.hero_button_text,
