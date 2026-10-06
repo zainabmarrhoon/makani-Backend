@@ -1,4 +1,3 @@
-
 from sqlalchemy import Column, String, Text, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from .base import BaseModel
@@ -15,6 +14,7 @@ class StoreModel(BaseModel):
     email = Column(String)
     address = Column(Text)
     logo = Column(String)
+    hero_image = Column(String)
     slug = Column(String, unique=True, nullable=False)
     status = Column(String, default="draft", nullable=False)
 
@@ -50,4 +50,3 @@ class StoreModel(BaseModel):
         "NotificationModel",
         back_populates="store"
     )
-

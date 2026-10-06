@@ -1,4 +1,3 @@
-
 from pydantic import BaseModel
 
 
@@ -19,6 +18,7 @@ class StoreUpdateSchema(BaseModel):
     email: str | None = None
     address: str | None = None
     logo: str | None = None
+    hero_image: str | None = None
     slug: str | None = None
     status: str | None = None
 
@@ -45,6 +45,7 @@ class StoreSchema(BaseModel):
     email: str | None = None
     address: str | None = None
     logo: str | None = None
+    hero_image: str | None = None
     slug: str
     status: str
 
