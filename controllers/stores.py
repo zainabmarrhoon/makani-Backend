@@ -1,8 +1,10 @@
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from uuid import uuid4
 
 from models.store import StoreModel
+from models.product import ProductModel
 from serializers.store import StoreUpdateSchema, StoreSchema
 from database import get_db
 from dependencies.get_current_user import get_current_user
@@ -107,7 +109,7 @@ def get_store(
     return store
 
 
-@router.get("/stores/{store_id}/preview", response_model=StoreSchema)
+@router.get("/stores/{store_id}/preview")
 def preview_store(
     store_id: int,
     db: Session = Depends(get_db),
@@ -124,10 +126,39 @@ def preview_store(
             detail="Store not found"
         )
 
-    return store
+    products = db.query(ProductModel).filter(
+        ProductModel.store_id == store.id
+    ).all()
+
+    return {
+        "id": store.id,
+        "owner_id": store.owner_id,
+        "name": store.name,
+        "description": store.description,
+        "phone": store.phone,
+        "email": store.email,
+        "address": store.address,
+        "logo": store.logo,
+        "hero_image": store.hero_image,
+        "slug": store.slug,
+        "status": store.status,
+        "benefitpay_iban": store.benefitpay_iban,
+        "show_home": store.show_home,
+        "show_products": store.show_products,
+        "show_about": store.show_about,
+        "show_contact": store.show_contact,
+        "show_cart": store.show_cart,
+        "show_orders": store.show_orders,
+        "hero_title": store.hero_title,
+        "hero_description": store.hero_description,
+        "hero_button_text": store.hero_button_text,
+        "about_title": store.about_title,
+        "about_description": store.about_description,
+        "products": products
+    }
 
 
-@router.get("/public/stores/{slug}", response_model=StoreSchema)
+@router.get("/public/stores/{slug}")
 def get_public_store(
     slug: str,
     db: Session = Depends(get_db)
@@ -143,7 +174,36 @@ def get_public_store(
             detail="Store not found"
         )
 
-    return store
+    products = db.query(ProductModel).filter(
+        ProductModel.store_id == store.id
+    ).all()
+
+    return {
+        "id": store.id,
+        "owner_id": store.owner_id,
+        "name": store.name,
+        "description": store.description,
+        "phone": store.phone,
+        "email": store.email,
+        "address": store.address,
+        "logo": store.logo,
+        "hero_image": store.hero_image,
+        "slug": store.slug,
+        "status": store.status,
+        "benefitpay_iban": store.benefitpay_iban,
+        "show_home": store.show_home,
+        "show_products": store.show_products,
+        "show_about": store.show_about,
+        "show_contact": store.show_contact,
+        "show_cart": store.show_cart,
+        "show_orders": store.show_orders,
+        "hero_title": store.hero_title,
+        "hero_description": store.hero_description,
+        "hero_button_text": store.hero_button_text,
+        "about_title": store.about_title,
+        "about_description": store.about_description,
+        "products": products
+    }
 
 
 @router.put("/stores/{store_id}", response_model=StoreSchema)
