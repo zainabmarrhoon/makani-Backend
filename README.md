@@ -1,3 +1,3 @@
 # Makani
 
-This is the [Makani Frontend](https://github.com/zainabmarrhoon/makani-frontend) repository.
+For more details about the project, visit the [Makani Frontend Repository](https://github.com/zainabmarrhoon/makani-frontend).
