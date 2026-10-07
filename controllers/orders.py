@@ -1,8 +1,13 @@
+
+import json
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from uuid import uuid4
 
 from models.order import OrderModel
+from models.order_product import OrderProductModel
+from models.product import ProductModel
 from models.store import StoreModel
 from models.notification import NotificationModel
 from serializers.order import (
@@ -27,6 +32,7 @@ def create_order(
     customer_phone: str = Form(...),
     customer_address: str = Form(...),
     payment_method: str = Form(...),
+    products: str = Form(...),
     payment_proof: UploadFile | None = File(None),
     db: Session = Depends(get_db)
 ):
@@ -38,6 +44,20 @@ def create_order(
         raise HTTPException(
             status_code=404,
             detail="Store not found"
+        )
+
+    try:
+        products_data = json.loads(products)
+    except json.JSONDecodeError:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid products data"
+        )
+
+    if not products_data:
+        raise HTTPException(
+            status_code=400,
+            detail="Order must contain at least one product"
         )
 
     payment_proof_path = None
@@ -63,6 +83,8 @@ def create_order(
         with open(payment_proof_path, "wb") as file:
             file.write(payment_proof.file.read())
 
+    total_amount = 0
+
     new_order = OrderModel(
         store_id=store_id,
         customer_name=customer_name,
@@ -77,6 +99,44 @@ def create_order(
 
     db.add(new_order)
     db.flush()
+
+    for item in products_data:
+        product = db.query(ProductModel).filter(
+            ProductModel.id == item["product_id"],
+            ProductModel.store_id == store_id
+        ).first()
+
+        if not product:
+            db.rollback()
+
+            raise HTTPException(
+                status_code=404,
+                detail=f"Product {item['product_id']} not found"
+            )
+
+        quantity = int(item["quantity"])
+
+        if quantity <= 0:
+            db.rollback()
+
+            raise HTTPException(
+                status_code=400,
+                detail="Product quantity must be greater than 0"
+            )
+
+        item_total = float(product.price) * quantity
+        total_amount += item_total
+
+        order_product = OrderProductModel(
+            order_id=new_order.id,
+            product_id=product.id,
+            quantity=quantity,
+            price=product.price
+        )
+
+        db.add(order_product)
+
+    new_order.total_amount = total_amount
 
     notification = NotificationModel(
         store_id=store_id,
