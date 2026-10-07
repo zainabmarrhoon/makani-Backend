@@ -106,6 +106,26 @@ def get_store(
     return store
 
 
+@router.get("/stores/{store_id}/preview", response_model=StoreSchema)
+def preview_store(
+    store_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    store = db.query(StoreModel).filter(
+        StoreModel.id == store_id,
+        StoreModel.owner_id == current_user.id
+    ).first()
+
+    if not store:
+        raise HTTPException(
+            status_code=404,
+            detail="Store not found"
+        )
+
+    return store
+
+
 @router.put("/stores/{store_id}", response_model=StoreSchema)
 def update_store(
     store_id: int,
@@ -124,6 +144,7 @@ def update_store(
             detail="Store not found"
         )
 
+    # Basic store information
     if store.name is not None:
         db_store.name = store.name
 
@@ -142,6 +163,7 @@ def update_store(
     if store.logo is not None:
         db_store.logo = store.logo
 
+    # Store slug
     if store.slug is not None:
         existing_store = db.query(StoreModel).filter(
             StoreModel.slug == store.slug,
@@ -156,8 +178,52 @@ def update_store(
 
         db_store.slug = store.slug
 
+    # Store status
     if store.status is not None:
         db_store.status = store.status
+
+    # Navigation settings
+    if store.show_home is not None:
+        db_store.show_home = store.show_home
+
+    if store.show_products is not None:
+        db_store.show_products = store.show_products
+
+    if store.show_about is not None:
+        db_store.show_about = store.show_about
+
+    if store.show_contact is not None:
+        db_store.show_contact = store.show_contact
+
+    if store.show_cart is not None:
+        db_store.show_cart = store.show_cart
+
+    if store.show_orders is not None:
+        db_store.show_orders = store.show_orders
+
+    # Hero section
+    if store.hero_title is not None:
+        db_store.hero_title = store.hero_title
+
+    if store.hero_description is not None:
+        db_store.hero_description = store.hero_description
+
+    if store.hero_button_text is not None:
+        db_store.hero_button_text = store.hero_button_text
+
+    if store.hero_image is not None:
+        db_store.hero_image = store.hero_image
+
+    # About section
+    if store.about_title is not None:
+        db_store.about_title = store.about_title
+
+    if store.about_description is not None:
+        db_store.about_description = store.about_description
+
+    # BenefitPay
+    if store.benefitpay_iban is not None:
+        db_store.benefitpay_iban = store.benefitpay_iban
 
     db.commit()
     db.refresh(db_store)
